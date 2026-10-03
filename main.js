@@ -10,11 +10,23 @@ function setup() {
     createCanvas(1920, 1080);
     data = createElement("textarea", "");
     data.style("resize", "none");
+    data.input(drawit);
     grid = createCheckbox("Grid", true);
-    scaleCanvas();
+    prevwidth = 1920;
+    prevheight = 1080;
+    drawit();
 }
 
+// only redraw when window size changes or input changes
 function draw() {
+    if (window.innerWidth != prevwidth || window.innerHeight != prevheight) {
+        drawit();
+    }
+    prevwidth = window.innerWidth;
+    prevheight = window.innerHeight;
+}
+
+function drawit() {
     background("white");
     setDrawSettings(false, "black", 2);
     scaleCanvas();
@@ -49,9 +61,22 @@ function textToArray(element) {
         .filter(line => line.trim() !== "") // remove empty lines
         .map(line => line.replace(/[()\[\]\{\}]/g, "") // remove brackets
             .split(/,\s*/) // change into array
-            .map(str => Number(str)) // change strings to numbers
-            .filter(num => !isNaN(num)) // remove non-numbers
-        ).filter(line => line.length == 2); // only allow [x, y] for 2d positions
+            .map(str => {
+                if (/^(stop|end)$/i.test(str)) {
+                    return "end";
+                }
+                const num = Number(str)
+                return isNaN(num) ? null : num;
+            }) // change strings to numbers
+            .filter(num => num !== null) // remove broken numbers
+        ).filter(line => {
+            if (typeof line[0] === "string") {
+                return line.length == 1
+            }
+            if (typeof line[0] === "number") {
+                return line.length == 2
+            }
+        }); // only allow [x, y] for 2d positions
 }
 
 function getHighestLength(element) {
@@ -81,10 +106,16 @@ function drawPolygon() {
             text(-i, centerX, centerY + i);
         }
     }
-    strokeWeight(3);
+    setDrawSettings(false, "black", 3);
     beginShape();
     for (const pair of array) {
-        vertex(pair[0] + centerX, pair[1] * -1 + centerY);
+        if (pair[0] == "end") {
+            endShape();
+            beginShape();
+        }
+        else {
+            vertex(pair[0] + centerX, pair[1] * -1 + centerY);
+        }
     }
     endShape();
 }
@@ -107,7 +138,6 @@ function scaleCanvas() {
     const scaleFactor = func(window.innerWidth / 1920, window.innerHeight / 1080);
     const fontSize = FONT_SIZE * scaleFactor + "px";
     const textWidth = min(MAX_TEXT_WIDTH, max(MIN_TEXT_WIDTH, getHighestLength(data) * FONT_SIZE * 70 / 100))
-    console.log(textWidth * scaleFactor)
     resizeCanvas(window.innerWidth, window.innerHeight);
     scale(scaleFactor);
     data.position((UI_OFFSET / 2 - textWidth / 2) * scaleFactor - 4, 100 * scaleFactor);
