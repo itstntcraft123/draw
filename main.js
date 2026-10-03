@@ -1,8 +1,8 @@
-FONT_SIZE = 24;
+FONT_SIZE = 26;
 // This project was made for 1920x1080, however it will be automatically scaled to any resolution.
 SCALING_MODE = "min";
 UI_OFFSET = 400; // The x coordinate of the separator between UI and graph 
-MIN_TEXT_WIDTH = 150;
+MIN_TEXT_WIDTH = 200;
 MAX_TEXT_WIDTH = 300;
 CHECKBOX_SIZE = 3; // checkbox size multiplier
 
@@ -18,10 +18,12 @@ function draw() {
     background("white");
     setDrawSettings(false, "black", 2);
     scaleCanvas();
-    rect(UI_OFFSET, 0, 1920, 1080)
+    rect(UI_OFFSET, 0, 1920 - UI_OFFSET, 1080);
     drawPolygon();
     setDrawSettings("white", false);
-    rect(0, 0, UI_OFFSET, 1200); // prevent graph from going into UI area
+    rect(0, 0, UI_OFFSET, 1080); // prevent graph from going into UI area
+    rect(1920, 0, 1000, 1080);
+    rect(0, 1080, 1920, 2000);
     noStroke();
 }
 
@@ -62,17 +64,21 @@ function getHighestLength(element) {
     return max;
 }
 
-function drawPolygon(text) {
+function drawPolygon() {
     const centerX = (1920 + UI_OFFSET) / 2;
     const centerY = 1080 / 2;
     const array = textToArray(data);
     setDrawSettings(false, "black");
     if (grid.checked()) {
         for (let i = -1000; i < 1000; i += 100) {
-            if (i === 0) strokeWeight(2);
-            else strokeWeight(1);
+            if (i === 0) setDrawSettings(false, "black", 2);
+            else setDrawSettings(false, "black", 1);
             line(0, i + centerY, 1920, i + centerY);
             line(i + centerX, 0, i + centerX, 1080);
+            textSize(22);
+            setDrawSettings("black", false);
+            text(i, centerX + i, centerY);
+            text(-i, centerX, centerY + i);
         }
     }
     strokeWeight(3);
