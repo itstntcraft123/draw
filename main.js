@@ -4,11 +4,13 @@ SCALING_MODE = "min";
 UI_OFFSET = 400; // The x coordinate of the separator between UI and graph 
 MIN_TEXT_WIDTH = 150;
 MAX_TEXT_WIDTH = 300;
+CHECKBOX_SIZE = 3; // checkbox size multiplier
 
 function setup() {
     createCanvas(1920, 1080);
     data = createElement("textarea", "");
     data.style("resize", "none");
+    grid = createCheckbox("Grid", true);
     scaleCanvas();
 }
 
@@ -65,11 +67,13 @@ function drawPolygon(text) {
     const centerY = 1080 / 2;
     const array = textToArray(data);
     setDrawSettings(false, "black");
-    for (let i = -1000; i < 1000; i += 100) {
-        if (i === 0) strokeWeight(2);
-        else strokeWeight(1);
-        line(0, i + centerY, 1920, i + centerY);
-        line(i + centerX, 0, i + centerX, 1080);
+    if (grid.checked()) {
+        for (let i = -1000; i < 1000; i += 100) {
+            if (i === 0) strokeWeight(2);
+            else strokeWeight(1);
+            line(0, i + centerY, 1920, i + centerY);
+            line(i + centerX, 0, i + centerX, 1080);
+        }
     }
     strokeWeight(3);
     beginShape();
@@ -103,4 +107,6 @@ function scaleCanvas() {
     data.position((UI_OFFSET / 2 - textWidth / 2) * scaleFactor - 4, 100 * scaleFactor);
     data.size(textWidth * scaleFactor, 400 * scaleFactor);
     data.style("font-size", fontSize);
+    grid.position(150 * scaleFactor, 800 * scaleFactor);
+    grid.style("transform", "scale(" + CHECKBOX_SIZE * scaleFactor + ")");
 }
