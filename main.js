@@ -6,14 +6,57 @@ MIN_TEXT_WIDTH = 200;
 MAX_TEXT_WIDTH = 300;
 CHECKBOX_SIZE = 3; // checkbox size multiplier
 
+EXAMPLE = `-500, 400
+-500, -400
+-400, -400
+-400, -50
+-200, -50
+-200, -400
+-100, -400
+-100, 400
+-200, 400
+-200, 50
+-400, 50
+-400, 400
+-500, 400
+STOP
+100, 400
+500, 400
+500, 300
+350, 300
+350, -300
+500, -300
+500, -400
+100, -400
+100, -300
+250, -300
+250, 300
+100, 300
+100, 400`
+
 function setup() {
     createCanvas(1920, 1080);
-    data = createElement("textarea", "");
+    data = createElement("textarea");
     data.style("resize", "none");
     data.input(drawit);
     grid = createCheckbox("Grid", true);
+    grid.input(drawit);
+    example = createElement("button", "example");
+    example.mousePressed(drawExample);
+    clear = createElement("button", "clear");
+    clear.mousePressed(clearGraph);
     prevwidth = 1920;
     prevheight = 1080;
+    drawit();
+}
+
+function drawExample() {
+    data.value(EXAMPLE);
+    drawit();
+}
+
+function clearGraph() {
+    data.value("");
     drawit();
 }
 
@@ -106,7 +149,7 @@ function drawPolygon() {
             text(-i, centerX, centerY + i);
         }
     }
-    setDrawSettings(false, "black", 3);
+    setDrawSettings(false, "black", 4);
     beginShape();
     for (const pair of array) {
         if (pair[0] == "end") {
@@ -140,9 +183,16 @@ function scaleCanvas() {
     const textWidth = min(MAX_TEXT_WIDTH, max(MIN_TEXT_WIDTH, getHighestLength(data) * FONT_SIZE * 70 / 100))
     resizeCanvas(window.innerWidth, window.innerHeight);
     scale(scaleFactor);
-    data.position((UI_OFFSET / 2 - textWidth / 2) * scaleFactor - 4, 100 * scaleFactor);
+    data.position((UI_OFFSET / 2 - textWidth / 2) * scaleFactor - 4, 300 * scaleFactor);
     data.size(textWidth * scaleFactor, 400 * scaleFactor);
     data.style("font-size", fontSize);
-    grid.position(150 * scaleFactor, 800 * scaleFactor);
+    grid.position(115 * scaleFactor, 800 * scaleFactor);
     grid.style("transform", "scale(" + CHECKBOX_SIZE * scaleFactor + ")");
+    grid.style("transform-origin", "left top");
+    example.position((165 - example.width / 2) * scaleFactor, (950 - example.height / 2) * scaleFactor);
+    example.style("font-size", fontSize);
+    example.style("padding", scaleFactor * 2 + "px " + scaleFactor * 8 + "px");
+    clear.position((172 - clear.width / 2) * scaleFactor, (1000 - clear.height / 2) * scaleFactor);
+    clear.style("font-size", fontSize);
+    clear.style("padding", scaleFactor * 2 + "px " + scaleFactor * 8 + "px");
 }
