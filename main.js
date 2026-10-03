@@ -41,12 +41,17 @@ function setup() {
     data.input(drawit);
     grid = createCheckbox("Grid", true);
     grid.input(drawit);
-    example = createElement("button", "example");
-    example.mousePressed(drawExample);
-    clear = createElement("button", "clear");
-    clear.mousePressed(clearGraph);
+    exampleBtn = createElement("button", "example");
+    exampleBtn.mousePressed(drawExample);
+    clearBtn = createElement("button", "clear");
+    clearBtn.mousePressed(clearBtnGraph);
     prevwidth = 1920;
     prevheight = 1080;
+    document.addEventListener("pointerdown", (e) => {
+        if (e.target !== data.elt && document.activeElement === data.elt) {
+            data.elt.blur();
+        }
+    })
     drawit();
 }
 
@@ -55,18 +60,18 @@ function drawExample() {
     drawit();
 }
 
-function clearGraph() {
+function clearBtnGraph() {
     data.value("");
     drawit();
 }
 
 // only redraw when window size changes or input changes
 function draw() {
-    if (window.innerWidth != prevwidth || window.innerHeight != prevheight) {
+    if (document.documentElement.clientWidth !== prevwidth || document.documentElement.clientHeight !== prevheight) {
         drawit();
     }
-    prevwidth = window.innerWidth;
-    prevheight = window.innerHeight;
+    prevwidth = document.documentElement.clientWidth;
+    prevheight = document.documentElement.clientHeight;
 }
 
 function drawit() {
@@ -79,7 +84,15 @@ function drawit() {
     rect(0, 0, UI_OFFSET, 1080); // prevent graph from going into UI area
     rect(1920, 0, 1000, 1080);
     rect(0, 1080, 1920, 2000);
-    noStroke();
+    setDrawSettings("black", false);
+    textFont("monospace");
+    textAlign(CENTER);
+    textSize(35);
+    text("draw something", 200, 80);
+    textSize(21);
+    text("use one coordinate pair (x,y)\nper line to draw something!\n\nyour points are automatically\nconnected, type END or\nSTOP to break!", 200, 130);
+    textFont("sans-serif");
+    textAlign(LEFT);
 }
 
 function setDrawSettings(setFill, setStroke, setStrokeWeight) {
@@ -145,8 +158,8 @@ function drawPolygon() {
             line(i + centerX, 0, i + centerX, 1080);
             textSize(22);
             setDrawSettings("black", false);
-            text(i, centerX + i, centerY);
-            text(-i, centerX, centerY + i);
+            text(i, centerX + i + 5, centerY - 5);
+            text(-i, centerX + 5, centerY + i - 5);
         }
     }
     setDrawSettings(false, "black", 4);
@@ -178,21 +191,24 @@ function scaleCanvas() {
             };
             break;
     }
-    const scaleFactor = func(window.innerWidth / 1920, window.innerHeight / 1080);
+    const scaleFactor = func(document.documentElement.clientWidth / 1920, document.documentElement.clientHeight / 1080);
     const fontSize = FONT_SIZE * scaleFactor + "px";
     const textWidth = min(MAX_TEXT_WIDTH, max(MIN_TEXT_WIDTH, getHighestLength(data) * FONT_SIZE * 70 / 100))
-    resizeCanvas(window.innerWidth, window.innerHeight);
+    resizeCanvas(document.documentElement.clientWidth, document.documentElement.clientHeight);
     scale(scaleFactor);
-    data.position((UI_OFFSET / 2 - textWidth / 2) * scaleFactor - 4, 300 * scaleFactor);
+    data.position((UI_OFFSET / 2 - textWidth / 2) * scaleFactor - 4, 325 * scaleFactor);
     data.size(textWidth * scaleFactor, 400 * scaleFactor);
     data.style("font-size", fontSize);
+
     grid.position(115 * scaleFactor, 800 * scaleFactor);
     grid.style("transform", "scale(" + CHECKBOX_SIZE * scaleFactor + ")");
     grid.style("transform-origin", "left top");
-    example.position((165 - example.width / 2) * scaleFactor, (950 - example.height / 2) * scaleFactor);
-    example.style("font-size", fontSize);
-    example.style("padding", scaleFactor * 2 + "px " + scaleFactor * 8 + "px");
-    clear.position((172 - clear.width / 2) * scaleFactor, (1000 - clear.height / 2) * scaleFactor);
-    clear.style("font-size", fontSize);
-    clear.style("padding", scaleFactor * 2 + "px " + scaleFactor * 8 + "px");
+
+    exampleBtn.position((162 - exampleBtn.width / 2) * scaleFactor, (940 - exampleBtn.height / 2) * scaleFactor);
+    exampleBtn.style("font-size", fontSize);
+    exampleBtn.style("padding", scaleFactor * 2 + "px " + scaleFactor * 8 + "px");
+
+    clearBtn.position((172 - clearBtn.width / 2) * scaleFactor, (1000 - clearBtn.height / 2) * scaleFactor);
+    clearBtn.style("font-size", fontSize);
+    clearBtn.style("padding", scaleFactor * 2 + "px " + scaleFactor * 8 + "px");
 }
