@@ -1,9 +1,9 @@
 FONT_SIZE = 26;
 // This project was made for 1920x1080, however it will be automatically scaled to any resolution.
 SCALING_MODE = "min";
-UI_OFFSET = 400; // The x coordinate of the separator between UI and graph 
-MIN_TEXT_WIDTH = 200;
-MAX_TEXT_WIDTH = 300;
+UI_OFFSET = 450; // The x coordinate of the separator between UI and graph 
+MIN_TEXT_WIDTH = 250;
+MAX_TEXT_WIDTH = 400;
 CHECKBOX_SIZE = 3; // checkbox size multiplier
 
 EXAMPLE = `-500, 400
@@ -41,10 +41,16 @@ function setup() {
     data.input(drawit);
     grid = createCheckbox("Grid", true);
     grid.input(drawit);
-    exampleBtn = createElement("button", "example");
+    grid.style("transform-origin", "left top");
+    grid.style("user-select", "none");
+    exampleBtn = createButton("example");
     exampleBtn.mousePressed(drawExample);
-    clearBtn = createElement("button", "clear");
+    clearBtn = createButton("clear");
     clearBtn.mousePressed(clearBtnGraph);
+    zoomIn = createButton("+");
+    zoomIn.style("font-family", "monospace");
+    zoomOut = createButton("-");
+    zoomOut.style("font-family", "monospace");
     prevwidth = 1920;
     prevheight = 1080;
     document.addEventListener("pointerdown", (e) => {
@@ -87,11 +93,12 @@ function drawit() {
     setDrawSettings("black", false);
     textFont("monospace");
     textAlign(CENTER);
-    textSize(35);
-    text("draw something", 200, 80);
-    textSize(21);
-    text("use one coordinate pair (x,y)\nper line to draw something!\n\nyour points are automatically\nconnected, type END or\nSTOP to break!", 200, 130);
+    textSize(44);
+    text("draw something", UI_OFFSET / 2, 80);
+    textSize(22);
+    text("use one coordinate pair (x,y)\nper line to draw something!\n\nyour points are automatically\nconnected, type END or\nSTOP to break!", UI_OFFSET / 2, 135);
     textFont("sans-serif");
+    text("zoom", UI_OFFSET / 2, 1007.5);
     textAlign(LEFT);
 }
 
@@ -192,23 +199,37 @@ function scaleCanvas() {
             break;
     }
     const scaleFactor = func(document.documentElement.clientWidth / 1920, document.documentElement.clientHeight / 1080);
-    const fontSize = FONT_SIZE * scaleFactor + "px";
+    let body = select("body");
+    body.style("transform", "scale(" + scaleFactor + ")");
+    body.style("transform-origin", "top left");
+    body.style("width", 100 / scaleFactor + "%");
+    const fontSize = FONT_SIZE + "px";
     const textWidth = min(MAX_TEXT_WIDTH, max(MIN_TEXT_WIDTH, getHighestLength(data) * FONT_SIZE * 70 / 100))
-    resizeCanvas(document.documentElement.clientWidth, document.documentElement.clientHeight);
-    scale(scaleFactor);
-    data.position((UI_OFFSET / 2 - textWidth / 2) * scaleFactor - 4, 325 * scaleFactor);
-    data.size(textWidth * scaleFactor, 400 * scaleFactor);
+    resizeCanvas(document.documentElement.clientWidth / scaleFactor, document.documentElement.clientHeight / scaleFactor);
+    data.position((UI_OFFSET / 2 - textWidth / 2) - 4, 320);
+    data.size(textWidth, 400);
     data.style("font-size", fontSize);
 
-    grid.position(115 * scaleFactor, 800 * scaleFactor);
-    grid.style("transform", "scale(" + CHECKBOX_SIZE * scaleFactor + ")");
-    grid.style("transform-origin", "left top");
+    centerUI(grid, -55, 770)
+    grid.style("transform", "scale(" + CHECKBOX_SIZE + ")");
 
-    exampleBtn.position((162 - exampleBtn.width / 2) * scaleFactor, (940 - exampleBtn.height / 2) * scaleFactor);
+    centerUI(exampleBtn, 0, 870);
     exampleBtn.style("font-size", fontSize);
-    exampleBtn.style("padding", scaleFactor * 2 + "px " + scaleFactor * 8 + "px");
+    exampleBtn.style("padding", 2 + "px " + 8 + "px");
 
-    clearBtn.position((172 - clearBtn.width / 2) * scaleFactor, (1000 - clearBtn.height / 2) * scaleFactor);
+    centerUI(clearBtn, 0, 930);
     clearBtn.style("font-size", fontSize);
-    clearBtn.style("padding", scaleFactor * 2 + "px " + scaleFactor * 8 + "px");
+    clearBtn.style("padding", 2 + "px " + 8 + "px");
+
+    centerUI(zoomIn, 60, 1000);
+    zoomIn.style("font-size", fontSize);
+    zoomIn.style("padding", 0 + "px " + 8 + "px " + 2 + "px " + 8 + "px");
+
+    centerUI(zoomOut, -60, 1000);
+    zoomOut.style("font-size", fontSize);
+    zoomOut.style("padding", 0 + "px " + 8 + "px " + 2 + "px " + 8 + "px");
+}
+
+function centerUI(element, xOffset, y) {
+    element.position(UI_OFFSET / 2 + xOffset - element.elt.offsetWidth / 2, y - element.elt.offsetHeight / 2);
 }
