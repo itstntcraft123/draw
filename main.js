@@ -6,33 +6,45 @@ MIN_TEXT_WIDTH = 250;
 MAX_TEXT_WIDTH = 400;
 CHECKBOX_SIZE = 3; // checkbox size multiplier
 
-EXAMPLE = `-500, 400
+EXAMPLE = `-600, 400
+-600, -400
 -500, -400
--400, -400
--400, -50
--200, -50
+-500, -50
+-300, -50
+-300, -400
 -200, -400
--100, -400
--100, 400
 -200, 400
--200, 50
--400, 50
--400, 400
+-300, 400
+-300, 50
+-500, 50
 -500, 400
+-600, 400
 STOP
-100, 400
-500, 400
-500, 300
-350, 300
-350, -300
-500, -300
-500, -400
-100, -400
-100, -300
-250, -300
+0, 400
+400, 400
+400, 300
 250, 300
-100, 300
-100, 400`
+250, -300
+400, -300
+400, -400
+0, -400
+0, -300
+150, -300
+150, 300
+0, 300
+0, 400
+STOP
+550, 400
+650, 400
+650, -200
+550, -200
+550, 400
+STOP
+550, -300
+650, -300
+650, -400
+550, -400
+550, -300`
 
 function setup() {
     createCanvas(1920, 1080);
@@ -49,15 +61,21 @@ function setup() {
     clearBtn.mousePressed(clearBtnGraph);
     zoomIn = createButton("+");
     zoomIn.style("font-family", "monospace");
+    zoomIn.mousePressed(() => (zoom /= 0.8, drawit()));
     zoomOut = createButton("-");
     zoomOut.style("font-family", "monospace");
+    zoomOut.mousePressed(() => (zoom *= 0.8, drawit()));
+    resetZoom = createButton("reset zoom");
+    resetZoom.mousePressed(() => (zoom = 1, drawit()));
     prevwidth = 1920;
     prevheight = 1080;
+    zoom = 1;
     document.addEventListener("pointerdown", (e) => {
         if (e.target !== data.elt && document.activeElement === data.elt) {
             data.elt.blur();
         }
     })
+    scaleCanvas();
     drawit();
 }
 
@@ -92,14 +110,15 @@ function drawit() {
     rect(0, 1080, 1920, 2000);
     setDrawSettings("black", false);
     textFont("monospace");
-    textAlign(CENTER);
+    textAlign(CENTER, BASELINE);
     textSize(44);
     text("draw something", UI_OFFSET / 2, 80);
     textSize(22);
     text("use one coordinate pair (x,y)\nper line to draw something!\n\nyour points are automatically\nconnected, type END or\nSTOP to break!", UI_OFFSET / 2, 135);
+    textAlign(CENTER, CENTER);
     textFont("sans-serif");
-    text("zoom", UI_OFFSET / 2, 1007.5);
-    textAlign(LEFT);
+    text("zoom", UI_OFFSET / 2, 990);
+    textAlign(LEFT, BASELINE);
 }
 
 function setDrawSettings(setFill, setStroke, setStrokeWeight) {
@@ -152,21 +171,42 @@ function getHighestLength(element) {
     return max;
 }
 
+function getRealZoom(currentZoom) {
+    if (currentZoom > 3 / 2) {
+        return getRealZoom(currentZoom / 2);
+    }
+    else if (currentZoom < 2 / 3) {
+        return getRealZoom(currentZoom * 2);
+    }
+    else {
+        return currentZoom;
+    }
+}
+
 function drawPolygon() {
     const centerX = (1920 + UI_OFFSET) / 2;
     const centerY = 1080 / 2;
     const array = textToArray(data);
     setDrawSettings(false, "black");
     if (grid.checked()) {
-        for (let i = -1000; i < 1000; i += 100) {
-            if (i === 0) setDrawSettings(false, "black", 2);
+        const realZoom = getRealZoom(zoom);
+        const accuracy = ceil(Math.log10(zoom / realZoom)) - 2;
+        console.log(zoom / realZoom);
+        for (let i = -1000 * realZoom; i < 1000 * realZoom; i += 100 * realZoom) {
+            if (i > -100 * realZoom + 1 && i < 100 * realZoom - 1) setDrawSettings(false, "black", 2);
             else setDrawSettings(false, "black", 1);
             line(0, i + centerY, 1920, i + centerY);
             line(i + centerX, 0, i + centerX, 1080);
             textSize(22);
             setDrawSettings("black", false);
-            text(i, centerX + i + 5, centerY - 5);
-            text(-i, centerX + 5, centerY + i - 5);
+            if ((accuracy < 4 && accuracy > -4) || (i > -100 * realZoom + 1 && i < 100 * realZoom - 1)) {
+                text(round(i / zoom, accuracy), centerX + i + 5, centerY - 5);
+                text(round(-i / zoom, accuracy), centerX + 5, centerY + i - 5);
+            }
+            else {
+                text((i / zoom).toExponential(1), centerX + i + 5, centerY - 5);
+                text((-i / zoom).toExponential(1), centerX + 5, centerY + i - 5);
+            }
         }
     }
     setDrawSettings(false, "black", 4);
@@ -177,13 +217,14 @@ function drawPolygon() {
             beginShape();
         }
         else {
-            vertex(pair[0] + centerX, pair[1] * -1 + centerY);
+            vertex(pair[0] * zoom + centerX, pair[1] * zoom * -1 + centerY);
         }
     }
     endShape();
 }
 
 function scaleCanvas() {
+    window.scrollTo(0, 0);
     let func;
     switch (SCALING_MODE) {
         case "min":
@@ -213,21 +254,25 @@ function scaleCanvas() {
     centerUI(grid, -55, 770)
     grid.style("transform", "scale(" + CHECKBOX_SIZE + ")");
 
-    centerUI(exampleBtn, 0, 870);
+    centerUI(exampleBtn, 0, 860);
     exampleBtn.style("font-size", fontSize);
     exampleBtn.style("padding", 2 + "px " + 8 + "px");
 
-    centerUI(clearBtn, 0, 930);
+    centerUI(clearBtn, 0, 920);
     clearBtn.style("font-size", fontSize);
     clearBtn.style("padding", 2 + "px " + 8 + "px");
 
-    centerUI(zoomIn, 60, 1000);
+    centerUI(zoomIn, 60, 990);
     zoomIn.style("font-size", fontSize);
     zoomIn.style("padding", 0 + "px " + 8 + "px " + 2 + "px " + 8 + "px");
 
-    centerUI(zoomOut, -60, 1000);
+    centerUI(zoomOut, -60, 990);
     zoomOut.style("font-size", fontSize);
     zoomOut.style("padding", 0 + "px " + 8 + "px " + 2 + "px " + 8 + "px");
+
+    centerUI(resetZoom, 0, 1050);
+    resetZoom.style("font-size", fontSize);
+    resetZoom.style("padding", 2 + "px " + 8 + "px");
 }
 
 function centerUI(element, xOffset, y) {
