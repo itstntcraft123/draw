@@ -190,7 +190,7 @@ function drawPolygon() {
     setDrawSettings(false, "black");
     if (grid.checked()) {
         const realZoom = getRealZoom(zoom);
-        const accuracy = ceil(Math.log10(zoom / realZoom)) - 2;
+        const accuracy = ceil(Math.log10(zoom / realZoom)) - 1;
         console.log(zoom / realZoom);
         for (let i = -1000 * realZoom; i < 1000 * realZoom; i += 100 * realZoom) {
             if (i > -100 * realZoom + 1 && i < 100 * realZoom - 1) setDrawSettings(false, "black", 2);
@@ -199,7 +199,7 @@ function drawPolygon() {
             line(i + centerX, 0, i + centerX, 1080);
             textSize(22);
             setDrawSettings("black", false);
-            if ((accuracy < 4 && accuracy > -4) || (i > -100 * realZoom + 1 && i < 100 * realZoom - 1)) {
+            if ((accuracy < 4 && accuracy > -3) || (i > -100 * realZoom + 1 && i < 100 * realZoom - 1)) {
                 text(round(i / zoom, accuracy), centerX + i + 5, centerY - 5);
                 text(round(-i / zoom, accuracy), centerX + 5, centerY + i - 5);
             }
