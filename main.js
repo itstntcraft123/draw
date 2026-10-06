@@ -191,7 +191,6 @@ function drawPolygon() {
     if (grid.checked()) {
         const realZoom = getRealZoom(zoom);
         const accuracy = ceil(Math.log10(zoom / realZoom)) - 1;
-        console.log(zoom / realZoom);
         for (let i = -1000 * realZoom; i < 1000 * realZoom; i += 100 * realZoom) {
             if (i > -100 * realZoom + 1 && i < 100 * realZoom - 1) setDrawSettings(false, "black", 2);
             else setDrawSettings(false, "black", 1);
